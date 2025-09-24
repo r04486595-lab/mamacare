@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, development ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Install Clarinet
+      run: |
+        curl -L https://github.com/hirosystems/clarinet/releases/download/v1.8.0/clarinet-linux-x64-glibc.tar.gz | tar xzf -
+        chmod +x clarinet
+        sudo mv clarinet /usr/local/bin/
+
+    - name: Check contracts
+      run: clarinet check
+
+    - name: Run tests
+      run: npm test
+
+    - name: Security analysis
+      run: clarinet check --cost-analysis --coverage
